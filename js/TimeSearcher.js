@@ -3,31 +3,40 @@ var svg = d3.select("#visualization-area")
     .attr("width", 800)
     .attr("height", 500);
 
-var data = [
-  {date: new Date(2010, 1, 1), value: 10},
-  {date: new Date(2010, 1, 3), value: 20},
-  {date: new Date(2010, 1, 5), value: 5},
-  {date: new Date(2010, 1, 6), value: 40},
-  {date: new Date(2010, 1, 10), value: 41},
-  {date: new Date(2010, 1, 12), value: 30}
-];
+d3.csv("data/stock_data.csv", function(error, data) {
+    if (error) {
+        console.log(error);
+    } else {
+        stock_names = data.columns;
+        stock_names.shift(); // remove "date" column
 
-timeScale = d3.scaleTime()
-    .domain(d3.extent(data, d => d.date))
-    .range([100, 700]);
+        // for now, we just graph the first stock
+        name = stock_names[0];
+        values = data.map(function (d) {
+            return { 
+                date: new Date(d.date),
+                value: Number(d[name])
+            };
+        });
 
-valueScale = d3.scaleLinear()
-    .domain([0, d3.max(data, d => d.value)])
-    .range([400, 100]);
+        timeScale = d3.scaleTime()
+            .domain(d3.extent(values, d => d.date))
+            .range([100, 700]);
 
-var line = d3.line()
-    .x(function(d) { return timeScale(d.date); })
-    .y(function(d) { return valueScale(d.value); });
+        valueScale = d3.scaleLinear()
+            .domain([0, d3.max(values, d => d.value)])
+            .range([400, 100]);
 
-svg.append("path")
-    .datum(data)
-    .attr("d", line)
-    .attr("stroke", "black")
-    .attr("stroke-width", 2)
-    .attr("fill", "none");
+        var line = d3.line()
+            .x(function(d) { return timeScale(d.date); })
+            .y(function(d) { return valueScale(d.value); });
 
+        svg.append("path")
+            .datum(values)
+            .attr("d", line)
+            .attr("stroke", "black")
+            .attr("stroke-width", 1)
+            .attr("fill", "none");
+
+    }
+});
