@@ -82,8 +82,8 @@ function create_filter_box() {
         .attr("class", "filter-box-inside")
         .style("fill", "rgba(0, 0, 0, .3)")
         .style("stroke", "none")
-        .call(d3.drag().on("drag", on_box_drag)
-                       .on("end", on_box_drag_end));
+        .call(d3.drag().on("drag", on_drag)
+                       .on("end", on_drag_end));
 
     box_group.append("rect")
         .attr("x", x_pos)
@@ -94,12 +94,13 @@ function create_filter_box() {
         .style("fill", "none")
         .style("stroke", "rgba(0, 0, 255, .5)")
         .style("stroke-width", 4)
-        .call(d3.drag().on("drag", on_box_resize));
+        .call(d3.drag().on("drag", on_resize)
+                       .on("start", on_resize_start));
 
     update_lines();
 }
 
-function on_box_drag() {
+function on_drag() {
     var x_pos = Number(d3.select(this).attr("x")) + d3.event.dx;
     var y_pos = Number(d3.select(this).attr("y")) + d3.event.dy;
 
@@ -113,7 +114,7 @@ function on_box_drag() {
     update_lines();
 }
 
-function on_box_drag_end() {
+function on_drag_end() {
     if (d3.mouse(svg.node())[0] > 710 && d3.mouse(svg.node())[1] > 410) {
         d3.select(this.parentNode).remove();
     }
@@ -121,75 +122,80 @@ function on_box_drag_end() {
     update_lines();
 }
 
-function on_box_resize() {
-    var width = Number(d3.select(this).attr("width"));
-    var height = Number(d3.select(this).attr("height"));
+var resizeLeft, resizeRight, resizeTop, resizeBottom;
 
-    var mouse_x = d3.mouse(svg.node())[0] - d3.event.dx;
-    var mouse_y = d3.mouse(svg.node())[1] - d3.event.dy;
+function on_resize_start() {
+    resizeLeft = false;
+    resizeRight = false;
+    resizeTop = false;
+    resizeBottom = false;
+
+    var mouse_x = d3.mouse(svg.node())[0];
+    var mouse_y = d3.mouse(svg.node())[1];
+
     var box_left_x = Number(d3.select(this).attr("x"));
-    var box_right_x = box_left_x + width;
+    var box_right_x = box_left_x + Number(d3.select(this).attr("width"));
     var box_top_y = Number(d3.select(this).attr("y"));
-    var box_bottom_y = box_top_y + height;
-
-    var moveLeft = false;
-    var moveRight = false;
-    var moveTop = false;
-    var moveBottom = false;
-
-    var new_x = box_left_x;
-    var new_y = box_top_y;
-    var new_width = width;
-    var new_height = height;
+    var box_bottom_y = box_top_y + Number(d3.select(this).attr("height"));
 
     if (mouse_x < box_left_x + 4) {
-        moveLeft = true;
+        resizeLeft = true;
     } else if (mouse_x > box_right_x - 4) {
-        moveRight = true;
+        resizeRight = true;
     }
 
     if (mouse_y < box_top_y + 4) {
-        moveTop = true;
+        resizeTop = true;
     } else if (mouse_y > box_bottom_y - 4) {
-        moveBottom = true;
+        resizeBottom = true;
     }
+}
 
-    if (moveLeft) {
-        new_x += d3.event.dx;
-        new_width -= d3.event.dx;
+function on_resize() {
+    var x = Number(d3.select(this).attr("x"));
+    var y = Number(d3.select(this).attr("y"));
+    var width = Number(d3.select(this).attr("width"));
+    var height = Number(d3.select(this).attr("height"));    
+
+    if (resizeLeft) {
+        width -= d3.event.dx;
+        if (width < 15) {
+            width += d3.event.dx;
+        } else {
+            x += d3.event.dx;
+        }
     }
-
-    if (moveRight) {
-        new_width += d3.event.dx;
+    if (resizeRight) {
+        width += d3.event.dx;
+        if (width < 15) {
+            width -= d3.event.dx;
+        }
     }
-
-    if (moveTop) {
-        new_y += d3.event.dy;
-        new_height -= d3.event.dy;
+    if (resizeTop) {
+        height -= d3.event.dy;
+        if (height < 15) {
+            height += d3.event.dy;
+        } else {
+            y += d3.event.dy;
+        }
     }
-
-    if (moveBottom) {
-        new_height += d3.event.dy;
-    }
-
-    if (new_width < 10) {
-        new_width = 10;
-    }
-
-    if (new_height < 10) {
-        new_height = 10;
+    if (resizeBottom) {
+        height += d3.event.dy;
+        if (height < 15) {
+            height -= d3.event.dy;
+        }
     }
 
     d3.select(this)
-        .attr("x", new_x)
-        .attr("y", new_y)
-        .attr("width", new_width)
-        .attr("height", new_height);
+        .attr("x", x)
+        .attr("y", y)
+        .attr("width", width)
+        .attr("height", height);
     d3.select(this.parentNode).select(".filter-box-inside")
-        .attr("x", new_x)
-        .attr("y", new_y)
-        .attr("width", new_width)
-        .attr("height", new_height);
+        .attr("x", x)
+        .attr("y", y)
+        .attr("width", width)
+        .attr("height", height);
 
     update_lines();
 }
