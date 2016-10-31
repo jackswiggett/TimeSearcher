@@ -66,6 +66,15 @@ d3.csv("data/data_06-08.csv", function(error, data) {
 
         // add event listener to create filter boxes
         svg.on("click", create_filter_box);
+
+        // add left and bottom axes
+        bottomAxis = d3.axisBottom(timeScale);
+        leftAxis = d3.axisLeft(valueScale);
+
+        svg.append("g").call(bottomAxis)
+            .attr("transform", "translate(0," + (HEIGHT - MARGIN + 5) + ")");
+        svg.append("g").call(leftAxis)
+            .attr("transform", "translate(" + (MARGIN - 5) + ",0)");
     }
 });
 
