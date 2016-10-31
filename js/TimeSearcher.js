@@ -1,4 +1,4 @@
-var WIDTH = 800;
+var WIDTH = 900;
 var HEIGHT = 500;
 var MARGIN = 80;
 var BOX_SIZE = 70;
@@ -76,8 +76,8 @@ svg.append("image")
     .attr("xlink:href", "images/trash.svg");
 
 function create_filter_box() {
-    x_pos = d3.mouse(svg.node())[0];
-    y_pos = d3.mouse(svg.node())[1];
+    x_pos = d3.mouse(svg.node())[0] - BOX_SIZE / 2;
+    y_pos = d3.mouse(svg.node())[1] - BOX_SIZE / 2;
 
     box_group = svg.append("g")
 
@@ -87,8 +87,6 @@ function create_filter_box() {
         .attr("width", BOX_SIZE)
         .attr("height", BOX_SIZE)
         .attr("class", "filter-box-inside")
-        .style("fill", "rgba(0, 0, 0, .3)")
-        .style("stroke", "none")
         .call(d3.drag().on("drag", on_drag)
                        .on("end", on_drag_end));
 
@@ -98,8 +96,6 @@ function create_filter_box() {
         .attr("width", BOX_SIZE)
         .attr("height", BOX_SIZE)
         .attr("class", "filter-box-outside")
-        .style("fill", "none")
-        .style("stroke", "rgba(0, 0, 255, .5)")
         .style("stroke-width", BOX_BORDER_WIDTH)
         .call(d3.drag().on("drag", on_resize)
                        .on("start", on_resize_start));
