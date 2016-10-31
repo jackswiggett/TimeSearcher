@@ -6,7 +6,7 @@ var svg = d3.select("#visualization-area")
 
 var timeScale, valueScale, stocks, generatePathCoords;
 
-d3.csv("data/stock_data.csv", function(error, data) {
+d3.csv("data/data_06-08.csv", function(error, data) {
     if (error) {
         console.log(error);
     } else {
@@ -61,7 +61,6 @@ d3.csv("data/stock_data.csv", function(error, data) {
 });
 
 // add trash bin
-// <image x="10" y="20" width="80" height="80" xlink:href="recursion.svg" />
 svg.append("image")
     .attr("x", 710)
     .attr("y", 410)
