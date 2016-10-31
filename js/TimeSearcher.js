@@ -60,6 +60,15 @@ d3.csv("data/stock_data.csv", function(error, data) {
     }
 });
 
+// add trash bin
+// <image x="10" y="20" width="80" height="80" xlink:href="recursion.svg" />
+svg.append("image")
+    .attr("x", 710)
+    .attr("y", 410)
+    .attr("width", 80)
+    .attr("height", 80)
+    .attr("xlink:href", "images/trash.svg");
+
 function create_filter_box() {
     x_pos = d3.mouse(svg.node())[0];
     y_pos = d3.mouse(svg.node())[1];
@@ -74,7 +83,8 @@ function create_filter_box() {
         .attr("class", "filter-box-inside")
         .style("fill", "rgba(0, 0, 0, .3)")
         .style("stroke", "none")
-        .call(d3.drag().on("drag", on_box_drag));
+        .call(d3.drag().on("drag", on_box_drag)
+                       .on("end", on_box_drag_end));
 
     box_group.append("rect")
         .attr("x", x_pos)
@@ -83,13 +93,14 @@ function create_filter_box() {
         .attr("height", 100)
         .attr("class", "filter-box-outside")
         .style("fill", "none")
-        .style("stroke", "blue")
-        .style("stroke-width", 3);
+        .style("stroke", "rgba(0, 0, 255, .5)")
+        .style("stroke-width", 4)
+        .call(d3.drag().on("drag", on_box_resize));
 
     update_lines();
 }
 
-function on_box_drag(d) {
+function on_box_drag() {
     var x_pos = Number(d3.select(this).attr("x")) + d3.event.dx;
     var y_pos = Number(d3.select(this).attr("y")) + d3.event.dy;
 
@@ -99,6 +110,87 @@ function on_box_drag(d) {
     d3.select(this.parentNode).select(".filter-box-outside")
         .attr("x", x_pos)
         .attr("y", y_pos);
+
+    update_lines();
+}
+
+function on_box_drag_end() {
+    if (d3.mouse(svg.node())[0] > 710 && d3.mouse(svg.node())[1] > 410) {
+        d3.select(this.parentNode).remove();
+    }
+
+    update_lines();
+}
+
+function on_box_resize() {
+    var width = Number(d3.select(this).attr("width"));
+    var height = Number(d3.select(this).attr("height"));
+
+    var mouse_x = d3.mouse(svg.node())[0] - d3.event.dx;
+    var mouse_y = d3.mouse(svg.node())[1] - d3.event.dy;
+    var box_left_x = Number(d3.select(this).attr("x"));
+    var box_right_x = box_left_x + width;
+    var box_top_y = Number(d3.select(this).attr("y"));
+    var box_bottom_y = box_top_y + height;
+
+    var moveLeft = false;
+    var moveRight = false;
+    var moveTop = false;
+    var moveBottom = false;
+
+    var new_x = box_left_x;
+    var new_y = box_top_y;
+    var new_width = width;
+    var new_height = height;
+
+    if (mouse_x < box_left_x + 4) {
+        moveLeft = true;
+    } else if (mouse_x > box_right_x - 4) {
+        moveRight = true;
+    }
+
+    if (mouse_y < box_top_y + 4) {
+        moveTop = true;
+    } else if (mouse_y > box_bottom_y - 4) {
+        moveBottom = true;
+    }
+
+    if (moveLeft) {
+        new_x += d3.event.dx;
+        new_width -= d3.event.dx;
+    }
+
+    if (moveRight) {
+        new_width += d3.event.dx;
+    }
+
+    if (moveTop) {
+        new_y += d3.event.dy;
+        new_height -= d3.event.dy;
+    }
+
+    if (moveBottom) {
+        new_height += d3.event.dy;
+    }
+
+    if (new_width < 10) {
+        new_width = 10;
+    }
+
+    if (new_height < 10) {
+        new_height = 10;
+    }
+
+    d3.select(this)
+        .attr("x", new_x)
+        .attr("y", new_y)
+        .attr("width", new_width)
+        .attr("height", new_height);
+    d3.select(this.parentNode).select(".filter-box-inside")
+        .attr("x", new_x)
+        .attr("y", new_y)
+        .attr("width", new_width)
+        .attr("height", new_height);
 
     update_lines();
 }
