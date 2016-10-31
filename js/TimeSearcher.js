@@ -61,24 +61,50 @@ d3.csv("data/stock_data.csv", function(error, data) {
 });
 
 function create_filter_box() {
-    x_pos = d3.mouse(this)[0];
-    y_pos = d3.mouse(this)[1];
+    x_pos = d3.mouse(svg.node())[0];
+    y_pos = d3.mouse(svg.node())[1];
 
-    svg.append("rect")
+    box_group = svg.append("g")
+
+    box_group.append("rect")
         .attr("x", x_pos)
         .attr("y", y_pos)
         .attr("width", 100)
         .attr("height", 100)
-        .attr("class", "filter-box")
+        .attr("class", "filter-box-inside")
         .style("fill", "rgba(0, 0, 0, .3)")
+        .style("stroke", "none")
+        .call(d3.drag().on("drag", on_box_drag));
+
+    box_group.append("rect")
+        .attr("x", x_pos)
+        .attr("y", y_pos)
+        .attr("width", 100)
+        .attr("height", 100)
+        .attr("class", "filter-box-outside")
+        .style("fill", "none")
         .style("stroke", "blue")
         .style("stroke-width", 3);
 
     update_lines();
 }
 
+function on_box_drag(d) {
+    var x_pos = Number(d3.select(this).attr("x")) + d3.event.dx;
+    var y_pos = Number(d3.select(this).attr("y")) + d3.event.dy;
+
+    d3.select(this)
+        .attr("x", x_pos)
+        .attr("y", y_pos);
+    d3.select(this.parentNode).select(".filter-box-outside")
+        .attr("x", x_pos)
+        .attr("y", y_pos);
+
+    update_lines();
+}
+
 function filter_stocks(stocks) {
-    filter_boxes = d3.selectAll(".filter-box");
+    filter_boxes = d3.selectAll(".filter-box-inside");
 
     var filtered_stocks = stocks;
 
@@ -109,8 +135,6 @@ function filter_stocks(stocks) {
         });
     });
 
-    console.log(stocks);
-    console.log(filtered_stocks);
     return filtered_stocks;
 }
 
@@ -118,7 +142,7 @@ function update_lines() {
     var lines = d3.select("#visualization-svg").selectAll(".stock-line")
         .data(filter_stocks(stocks));
 
-    lines.enter()
+    lines.enter().append("path")
         .attr("d", generatePathCoords)
         .attr("stroke", "black")
         .attr("stroke-width", 1)
