@@ -1,7 +1,14 @@
+var WIDTH = 800;
+var HEIGHT = 500;
+var MARGIN = 80;
+var BOX_SIZE = 70;
+var BOX_BORDER_WIDTH = 4;
+var BOX_MIN_SIZE = 15;
+
 var svg = d3.select("#visualization-area")
     .append("svg")
-    .attr("width", 800)
-    .attr("height", 500)
+    .attr("width", WIDTH)
+    .attr("height", HEIGHT)
     .attr("id", "visualization-svg");
 
 var timeScale, valueScale, stocks, generatePathCoords;
@@ -29,7 +36,7 @@ d3.csv("data/data_06-08.csv", function(error, data) {
                 new Date(stocks[0][0].date),
                 new Date(stocks[0][stocks[0].length - 1].date)
             ])
-            .range([100, 700]);
+            .range([MARGIN, WIDTH - MARGIN]);
 
         var maxStockValue = d3.max(stocks, function(stock) {
             return d3.max(stock, function(d) {
@@ -39,7 +46,7 @@ d3.csv("data/data_06-08.csv", function(error, data) {
 
         valueScale = d3.scaleLinear()
             .domain([0, maxStockValue])
-            .range([400, 100]);
+            .range([HEIGHT - MARGIN, MARGIN]);
 
         // create and display SVG paths for all the stocks
         generatePathCoords = d3.line()
@@ -62,10 +69,10 @@ d3.csv("data/data_06-08.csv", function(error, data) {
 
 // add trash bin
 svg.append("image")
-    .attr("x", 710)
-    .attr("y", 410)
-    .attr("width", 80)
-    .attr("height", 80)
+    .attr("x", WIDTH - MARGIN * .9)
+    .attr("y", HEIGHT - MARGIN * .9)
+    .attr("width", MARGIN * .8)
+    .attr("height", MARGIN * .8)
     .attr("xlink:href", "images/trash.svg");
 
 function create_filter_box() {
@@ -77,8 +84,8 @@ function create_filter_box() {
     box_group.append("rect")
         .attr("x", x_pos)
         .attr("y", y_pos)
-        .attr("width", 100)
-        .attr("height", 100)
+        .attr("width", BOX_SIZE)
+        .attr("height", BOX_SIZE)
         .attr("class", "filter-box-inside")
         .style("fill", "rgba(0, 0, 0, .3)")
         .style("stroke", "none")
@@ -88,12 +95,12 @@ function create_filter_box() {
     box_group.append("rect")
         .attr("x", x_pos)
         .attr("y", y_pos)
-        .attr("width", 100)
-        .attr("height", 100)
+        .attr("width", BOX_SIZE)
+        .attr("height", BOX_SIZE)
         .attr("class", "filter-box-outside")
         .style("fill", "none")
         .style("stroke", "rgba(0, 0, 255, .5)")
-        .style("stroke-width", 4)
+        .style("stroke-width", BOX_BORDER_WIDTH)
         .call(d3.drag().on("drag", on_resize)
                        .on("start", on_resize_start));
 
@@ -115,7 +122,8 @@ function on_drag() {
 }
 
 function on_drag_end() {
-    if (d3.mouse(svg.node())[0] > 710 && d3.mouse(svg.node())[1] > 410) {
+    if (d3.mouse(svg.node())[0] > WIDTH - MARGIN * .9 &&
+        d3.mouse(svg.node())[1] > HEIGHT - MARGIN * .9) {
         d3.select(this.parentNode).remove();
     }
 
@@ -138,15 +146,15 @@ function on_resize_start() {
     var box_top_y = Number(d3.select(this).attr("y"));
     var box_bottom_y = box_top_y + Number(d3.select(this).attr("height"));
 
-    if (mouse_x < box_left_x + 4) {
+    if (mouse_x < box_left_x + BOX_BORDER_WIDTH) {
         resizeLeft = true;
-    } else if (mouse_x > box_right_x - 4) {
+    } else if (mouse_x > box_right_x - BOX_BORDER_WIDTH) {
         resizeRight = true;
     }
 
-    if (mouse_y < box_top_y + 4) {
+    if (mouse_y < box_top_y + BOX_BORDER_WIDTH) {
         resizeTop = true;
-    } else if (mouse_y > box_bottom_y - 4) {
+    } else if (mouse_y > box_bottom_y - BOX_BORDER_WIDTH) {
         resizeBottom = true;
     }
 }
@@ -159,7 +167,7 @@ function on_resize() {
 
     if (resizeLeft) {
         width -= d3.event.dx;
-        if (width < 15) {
+        if (width < BOX_MIN_SIZE) {
             width += d3.event.dx;
         } else {
             x += d3.event.dx;
@@ -167,13 +175,13 @@ function on_resize() {
     }
     if (resizeRight) {
         width += d3.event.dx;
-        if (width < 15) {
+        if (width < BOX_MIN_SIZE) {
             width -= d3.event.dx;
         }
     }
     if (resizeTop) {
         height -= d3.event.dy;
-        if (height < 15) {
+        if (height < BOX_MIN_SIZE) {
             height += d3.event.dy;
         } else {
             y += d3.event.dy;
@@ -181,7 +189,7 @@ function on_resize() {
     }
     if (resizeBottom) {
         height += d3.event.dy;
-        if (height < 15) {
+        if (height < BOX_MIN_SIZE) {
             height -= d3.event.dy;
         }
     }
