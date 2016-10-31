@@ -13,6 +13,7 @@ var svg = d3.select("#visualization-area")
 
 var timeScale, valueScale, stocks, generatePathCoords;
 
+// Read stock data from CSV file
 d3.csv("data/data_06-08.csv", function(error, data) {
     if (error) {
         console.log(error);
@@ -63,11 +64,12 @@ d3.csv("data/data_06-08.csv", function(error, data) {
             .attr("fill", "none")
             .attr("class", "stock-line");
 
+        // add event listener to create filter boxes
         svg.on("click", create_filter_box);
     }
 });
 
-// add trash bin
+// add trash bin image in lower right corner
 svg.append("image")
     .attr("x", WIDTH - MARGIN * .9)
     .attr("y", HEIGHT - MARGIN * .9)
@@ -75,6 +77,9 @@ svg.append("image")
     .attr("height", MARGIN * .8)
     .attr("xlink:href", "images/trash.svg");
 
+/* This event handler is called each time the user clicks within
+ * the SVG. It adds a new filter box to the visualization, and updates
+ * the trend lines accordingly. */
 function create_filter_box() {
     x_pos = d3.mouse(svg.node())[0] - BOX_SIZE / 2;
     y_pos = d3.mouse(svg.node())[1] - BOX_SIZE / 2;
@@ -103,6 +108,9 @@ function create_filter_box() {
     update_lines();
 }
 
+/* This event handler is called repeatedly while the user is
+ * dragging a filter box. It updates the position of the filter box,
+ * and updates the trend lines accordingly. */
 function on_drag() {
     var x_pos = Number(d3.select(this).attr("x")) + d3.event.dx;
     var y_pos = Number(d3.select(this).attr("y")) + d3.event.dy;
@@ -117,6 +125,10 @@ function on_drag() {
     update_lines();
 }
 
+/* This event handler is called when the user stops dragging a
+ * filter box and lifts the mouse button. It checks if the mouse is
+ * in the bottom right corner of the screen (over the trash icon),
+ * and if so, it deletes the filter box and updates the trend lines. */
 function on_drag_end() {
     if (d3.mouse(svg.node())[0] > WIDTH - MARGIN * .9 &&
         d3.mouse(svg.node())[1] > HEIGHT - MARGIN * .9) {
@@ -128,6 +140,15 @@ function on_drag_end() {
 
 var resizeLeft, resizeRight, resizeTop, resizeBottom;
 
+
+/* This event handler is called once when the user starts dragging
+ * the blue border of a filter box to resize it. This function looks
+ * at the position of the mouse relative to the position of the box,
+ * and determines which borders of the box should move when it is
+ * resized. The four boolean variables resizeLeft, resizeRight, resizeTop,
+ * and resizeBottom are set based on whether that border of the box should
+ * move. These variables are used by on_resize() to change the size of the
+ * box while the user is dragging. */
 function on_resize_start() {
     resizeLeft = false;
     resizeRight = false;
@@ -155,6 +176,11 @@ function on_resize_start() {
     }
 }
 
+/* This event handler is called repeatedly while the user is dragging
+ * the blue border of a box, i.e. resizing that box. This function updates
+ * the size and position of the box based on how far the user's mouse has
+ * moved, and which of the box's border(s) the user is resizing (as
+ * determined by on_resize_start()). It also updates the trend lines. */
 function on_resize() {
     var x = Number(d3.select(this).attr("x"));
     var y = Number(d3.select(this).attr("y"));
@@ -204,6 +230,8 @@ function on_resize() {
     update_lines();
 }
 
+/* Returns a list of stocks, filtered to only include the stocks that
+ * pass through all the filter boxes. */
 function filter_stocks(stocks) {
     filter_boxes = d3.selectAll(".filter-box-inside");
 
@@ -239,6 +267,9 @@ function filter_stocks(stocks) {
     return filtered_stocks;
 }
 
+/* Updates the trend lines displayed in the visualization to only
+ * include those that pass through all the filter boxes (as determined by
+ * filter_stocks()). */
 function update_lines() {
     var lines = d3.select("#visualization-svg").selectAll(".stock-line")
         .data(filter_stocks(stocks));
